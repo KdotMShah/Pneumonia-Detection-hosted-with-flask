@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload and Process Image</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+        }
+        #imagePreview {
+            max-width: 100%;
+            max-height: 400px;
+            margin-top: 20px;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Upload and Process Image</h1>
+
+    <input type="file" id="imageInput" accept="image/*">
+    <div id="imagePreviewContainer">
+        <img id="imagePreview" src="" alt="Image Preview" style="display: none;">
+    </div>
+
+    <div id="result">
+        <p id="imageResultText">No image uploaded yet.</p>
+        <p id="backendResultText">Waiting for server response...</p>
+    </div>
+
+    <script>
+        // Function to handle image upload and send to Flask server
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+            
+            if (file) {
+                reader.onload = function(e) {
+                    // Display the image preview
+                    const image = document.getElementById('imagePreview');
+                    image.src = e.target.result;
+                    image.style.display = 'block';
+                    
+                    // Display the result text
+                    document.getElementById('imageResultText').textContent = `Image uploaded: ${file.name}`;
+
+                    // Send image to Flask server for processing
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    fetch('/upload', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Show the result returned from Flask server
+                        document.getElementById('backendResultText').textContent = `Server Response: ${data.result}`;
+                    })
+                    .catch(error => {
+                        document.getElementById('backendResultText').textContent = 'Error uploading image.';
+                    });
+                };
+                reader.readAsDataURL(file);
+            } else {
+                document.getElementById('imageResultText').textContent = 'No image uploaded yet.';
+            }
+        });
+    </script>
+
+</body>
+</html>
